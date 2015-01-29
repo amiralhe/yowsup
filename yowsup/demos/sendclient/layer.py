@@ -2,6 +2,7 @@ from yowsup.layers.interface                           import YowInterfaceLayer,
 from yowsup.layers.protocol_messages.protocolentities  import TextMessageProtocolEntity
 import threading
 import logging
+import re
 logger = logging.getLogger(__name__)
 
 class SendLayer(YowInterfaceLayer):
@@ -18,7 +19,11 @@ class SendLayer(YowInterfaceLayer):
         self.lock.acquire()
         for target in self.getProp(self.__class__.PROP_MESSAGES, []):
             phone, message = target
-            messageEntity = TextMessageProtocolEntity(message, to = "%s@s.whatsapp.net" % phone)
+            regex = re.compile("\d{13}-\d{10}")
+            if regex.search(phone):
+                messageEntity = TextMessageProtocolEntity(message, to = "%s@g.us" % phone)
+            else:
+                messageEntity = TextMessageProtocolEntity(message, to = "%s@s.whatsapp.net" % phone)
             self.ackQueue.append(messageEntity.getId())
             self.toLower(messageEntity)
         self.lock.release()
